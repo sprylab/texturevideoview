@@ -5,12 +5,10 @@ A VideoView based on the official Android 4.4.2_r3 sources using a TextureView i
 
 ~~For more information please see [this announcement][1].~~
 
-NOTE: The announcement will be published once successful released over Maven central.
+NOTE: The announcement will be published next week on [our blog][5].
 
 Download
 --------
-
-NOTE: Currently we are waiting for getting released over Maven central.
 
 Download [the latest JAR][2] or grab via Maven:
 ```xml
@@ -47,6 +45,7 @@ License
 Note: The sample application includes a trailer for [Big Buck Bunny][3], which is released under the [Creative Commons Attribution 3.0][4] license.
 
  [1]: http://sprylab.com
- [2]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.sprylab.android&a=texturevideoview&v=LATEST
+ [2]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.sprylab.android.texturevideoview&a=texturevideoview&v=LATEST
  [3]: http://www.bigbuckbunny.org
  [4]: http://creativecommons.org/licenses/by/3.0/
+ [5]: http://sprylab.com/blog
