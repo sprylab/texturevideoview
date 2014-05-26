@@ -19,6 +19,7 @@
         SurfaceView.
     </description>
     <url>https://github.com/sprylab/texturevideoview</url>
+    <inceptionYear>2014</inceptionYear>
 
     <licenses>
         <license>
@@ -46,7 +47,7 @@
     <scm>
         <url>https://github.com/sprylab/texturevideoview</url>
         <connection>scm:git:git@github.com/sprylab/texturevideoview.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:sprylab/texturevideoview.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:sprylab/texturevideoview.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
