@@ -1,11 +1,9 @@
 TextureVideoView for Android
 ============================
 
-A VideoView based on the official Android 4.4.2_r3 sources using a TextureView instead of a SurfaceView by sprylab technologies GmbH.
+A VideoView based on the official Android 4.4.2_r3 sources using a TextureView instead of a SurfaceView by sprylab technologies GmbH. It will work on Android 4.0+ (API level 15 and above).
 
-~~For more information please see [this announcement][1].~~
-
-NOTE: The announcement will be published next week on [our blog][5].
+For more information please see [this announcement][1].
 
 Download
 --------
@@ -44,8 +42,7 @@ License
 
 Note: The sample application includes a trailer for [Big Buck Bunny][3], which is released under the [Creative Commons Attribution 3.0][4] license.
 
- [1]: http://sprylab.com
+ [1]: http://sprylab.com/en/blog/open-source-introducing-texturevideoview-android
  [2]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=com.sprylab.android.texturevideoview&a=texturevideoview&v=LATEST
  [3]: http://www.bigbuckbunny.org
  [4]: http://creativecommons.org/licenses/by/3.0/
- [5]: http://sprylab.com/blog
