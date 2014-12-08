@@ -363,21 +363,18 @@ public class TextureVideoView extends TextureView
             if (mVideoWidth != 0 && mVideoHeight != 0) {
                 //Log.i("@@@@", "video size: " + mVideoWidth +"/"+ mVideoHeight);
                 getSurfaceTexture().setDefaultBufferSize(mVideoWidth, mVideoHeight);
-                if (mSurfaceWidth == mVideoWidth && mSurfaceHeight == mVideoHeight) {
-                    // We didn't actually change the size (it was already at the size
-                    // we need), so we won't get a "surface changed" callback, so
-                    // start the video here instead of in the callback.
-                    if (mTargetState == STATE_PLAYING) {
-                        start();
-                        if (mMediaController != null) {
-                            mMediaController.show();
-                        }
-                    } else if (!isPlaying() &&
-                        (seekToPosition != 0 || getCurrentPosition() > 0)) {
-                        if (mMediaController != null) {
-                            // Show the media controls when we're paused into a video and make 'em stick.
-                            mMediaController.show(0);
-                        }
+                // We won't get a "surface changed" callback if the surface is already the right size, so
+                // start the video here instead of in the callback.
+                if (mTargetState == STATE_PLAYING) {
+                    start();
+                    if (mMediaController != null) {
+                        mMediaController.show();
+                    }
+                } else if (!isPlaying() &&
+                    (seekToPosition != 0 || getCurrentPosition() > 0)) {
+                    if (mMediaController != null) {
+                        // Show the media controls when we're paused into a video and make 'em stick.
+                        mMediaController.show(0);
                     }
                 }
             } else {
@@ -529,7 +526,7 @@ public class TextureVideoView extends TextureView
             mSurfaceWidth = width;
             mSurfaceHeight = height;
             boolean isValidState =  (mTargetState == STATE_PLAYING);
-            boolean hasValidSize = (mVideoWidth == width && mVideoHeight == height);
+            boolean hasValidSize = (width > 0 && height > 0);
             if (mMediaPlayer != null && isValidState && hasValidSize) {
                 if (mSeekWhenPrepared != 0) {
                     seekTo(mSeekWhenPrepared);
