@@ -547,7 +547,10 @@ public class TextureVideoView extends TextureView
         @Override
         public boolean onSurfaceTextureDestroyed(final SurfaceTexture surface) {
             // after we return from this we can't use the surface any more
-            mSurface = null;
+            if (mSurface != null) {
+                mSurface.release();
+                mSurface = null;
+            }
             if (mMediaController != null) mMediaController.hide();
             release(true);
             return true;
