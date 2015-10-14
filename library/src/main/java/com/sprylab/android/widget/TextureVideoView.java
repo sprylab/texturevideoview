@@ -284,7 +284,7 @@ public class TextureVideoView extends TextureView
             mMediaPlayer.setOnInfoListener(mInfoListener);
             mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
             mCurrentBufferPercentage = 0;
-            mMediaPlayer.setDataSource(mContext, mUri, mHeaders);
+            mMediaPlayer.setDataSource(mContext.getApplicationContext(), mUri, mHeaders);
             mMediaPlayer.setSurface(mSurface);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setScreenOnWhilePlaying(true);
