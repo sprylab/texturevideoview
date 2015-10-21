@@ -113,7 +113,6 @@ public class TextureVideoView extends TextureView
     private boolean     mCanPause;
     private boolean     mCanSeekBack;
     private boolean     mCanSeekForward;
-    private Context mContext;
 
     public TextureVideoView(Context context) {
         super(context);
@@ -211,7 +210,6 @@ public class TextureVideoView extends TextureView
     }
 
     private void initVideoView() {
-        mContext = getContext();
         mVideoWidth = 0;
         mVideoHeight = 0;
         setSurfaceTextureListener(mSurfaceTextureListener);
@@ -264,7 +262,7 @@ public class TextureVideoView extends TextureView
         // TODO: these constants need to be published somewhere in the framework.
         Intent i = new Intent("com.android.music.musicservicecommand");
         i.putExtra("command", "pause");
-        mContext.sendBroadcast(i);
+        getContext().sendBroadcast(i);
 
         // we shouldn't clear the target state, because somebody might have
         // called start() previously
@@ -284,7 +282,7 @@ public class TextureVideoView extends TextureView
             mMediaPlayer.setOnInfoListener(mInfoListener);
             mMediaPlayer.setOnBufferingUpdateListener(mBufferingUpdateListener);
             mCurrentBufferPercentage = 0;
-            mMediaPlayer.setDataSource(mContext, mUri, mHeaders);
+            mMediaPlayer.setDataSource(getContext().getApplicationContext(), mUri, mHeaders);
             mMediaPlayer.setSurface(mSurface);
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setScreenOnWhilePlaying(true);
@@ -438,7 +436,7 @@ public class TextureVideoView extends TextureView
              * longer have a window, don't bother showing the user an error.
              */
                 if (getWindowToken() != null) {
-                    Resources r = mContext.getResources();
+                    Resources r = getContext().getResources();
                     int messageId;
 
                     if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
@@ -447,7 +445,7 @@ public class TextureVideoView extends TextureView
                         messageId = R.string.VideoView_error_text_unknown;
                     }
 
-                    new AlertDialog.Builder(mContext)
+                    new AlertDialog.Builder(getContext())
                         .setMessage(messageId)
                         .setPositiveButton(R.string.VideoView_error_button,
                             new DialogInterface.OnClickListener() {
