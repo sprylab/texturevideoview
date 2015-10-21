@@ -10,7 +10,7 @@
 
     <groupId>com.sprylab.android.texturevideoview</groupId>
     <artifactId>parent</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>TextureVideoView for Android</name>
@@ -47,7 +47,7 @@
         <url>https://github.com/sprylab/texturevideoview</url>
         <connection>scm:git:git@github.com/sprylab/texturevideoview.git</connection>
         <developerConnection>scm:git:git@github.com:sprylab/texturevideoview.git</developerConnection>
-        <tag>1.0.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
