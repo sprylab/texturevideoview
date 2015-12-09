@@ -113,6 +113,7 @@ public class TextureVideoView extends TextureView
     private boolean     mCanPause;
     private boolean     mCanSeekBack;
     private boolean     mCanSeekForward;
+    private boolean     mIsMuted;
 
     public TextureVideoView(Context context) {
         super(context);
@@ -589,41 +590,49 @@ public class TextureVideoView extends TextureView
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event)
-    {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
         boolean isKeyCodeSupported = keyCode != KeyEvent.KEYCODE_BACK &&
-            keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
-            keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
-            keyCode != KeyEvent.KEYCODE_VOLUME_MUTE &&
-            keyCode != KeyEvent.KEYCODE_MENU &&
-            keyCode != KeyEvent.KEYCODE_CALL &&
-            keyCode != KeyEvent.KEYCODE_ENDCALL;
-        if (isInPlaybackState() && isKeyCodeSupported && mMediaController != null) {
-            if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK ||
-                keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
-                if (mMediaPlayer.isPlaying()) {
-                    pause();
-                    mMediaController.show();
+                keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
+                keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
+                keyCode != KeyEvent.KEYCODE_MENU &&
+                keyCode != KeyEvent.KEYCODE_CALL &&
+                keyCode != KeyEvent.KEYCODE_ENDCALL;
+        if (isInPlaybackState() && isKeyCodeSupported) {
+
+            if(mMediaController != null){
+                if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK ||
+                        keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+                    if (mMediaPlayer.isPlaying()) {
+                        pause();
+                        mMediaController.show();
+                    } else {
+                        start();
+                        mMediaController.hide();
+                    }
+                    return true;
+                } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
+                    if (!mMediaPlayer.isPlaying()) {
+                        start();
+                        mMediaController.hide();
+                    }
+                    return true;
+                } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
+                        || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+                    if (mMediaPlayer.isPlaying()) {
+                        pause();
+                        mMediaController.show();
+                    }
+                    return true;
                 } else {
-                    start();
-                    mMediaController.hide();
+                    toggleMediaControlsVisiblity();
                 }
-                return true;
-            } else if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY) {
-                if (!mMediaPlayer.isPlaying()) {
-                    start();
-                    mMediaController.hide();
+            }else{
+                if (keyCode == KeyEvent.KEYCODE_VOLUME_MUTE) {
+                    if (mIsMuted) mMediaPlayer.setVolume(1, 1);
+                    else mMediaPlayer.setVolume(0, 0);
+                    mIsMuted = !mIsMuted;
+                    return true;
                 }
-                return true;
-            } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
-                || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
-                if (mMediaPlayer.isPlaying()) {
-                    pause();
-                    mMediaController.show();
-                }
-                return true;
-            } else {
-                toggleMediaControlsVisiblity();
             }
         }
 
@@ -735,6 +744,10 @@ public class TextureVideoView extends TextureView
             foo.release();
         }
         return mAudioSession;
+    }
+
+    public void toggleMute() {
+        onKeyDown(KeyEvent.KEYCODE_VOLUME_MUTE, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_VOLUME_MUTE));
     }
 
 }
