@@ -14,7 +14,7 @@
     <packaging>pom</packaging>
 
     <name>TextureVideoView for Android</name>
-    <description>A VideoView based on the official Android 4.4.2_r3 sources using a TextureView instead of a
+    <description>A VideoView based on the official Android 6.0.1_r10 sources using a TextureView instead of a
         SurfaceView.
     </description>
     <url>https://github.com/sprylab/texturevideoview</url>

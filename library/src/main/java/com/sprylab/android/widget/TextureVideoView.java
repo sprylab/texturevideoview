@@ -16,15 +16,12 @@
 
 package com.sprylab.android.widget;
 
-import android.R;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
-import android.media.MediaFormat;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
@@ -32,7 +29,6 @@ import android.media.MediaPlayer.OnInfoListener;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.util.Pair;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -44,16 +40,14 @@ import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
-import java.util.Vector;
 
 /**
  * Displays a video file.  The TextureVideoView class
  * can load images from various sources (such as resources or content
  * providers), takes care of computing its measurement from the video so that
  * it can be used in any layout manager, and provides various display options
- * such as scaling and tinting.
+ * such as scaling and tinting.<p>
  *
  * <em>Note: VideoView does not retain its full state when going into the
  * background.</em>  In particular, it does not restore the current play state,
@@ -64,11 +58,11 @@ import java.util.Vector;
  * Also note that the audio session id (from {@link #getAudioSessionId}) may
  * change from its previously returned value when the VideoView is restored.<p>
  *
- * This code is based on the official Android sources for 4.4.2_r3 with the following differences:
+ * This code is based on the official Android sources for 6.0.1_r10 with the following differences:
  * <ol>
- *     <li>extends {@link android.view.TextureView} instead of a {@link android.view.SurfaceView} allowing proper
- *     view animations</li>
- *     <li>removes code that uses hidden APIs and thus is not available</li>
+ *     <li>extends {@link android.view.TextureView} instead of a {@link android.view.SurfaceView}
+ *     allowing proper view animations</li>
+ *     <li>removes code that uses hidden APIs and thus is not available (e.g. subtitle support)</li>
  * </ol>
  */
 public class TextureVideoView extends TextureView
@@ -101,8 +95,6 @@ public class TextureVideoView extends TextureView
     private int         mAudioSession;
     private int         mVideoWidth;
     private int         mVideoHeight;
-    private int         mSurfaceWidth;
-    private int         mSurfaceHeight;
     private MediaController mMediaController;
     private OnCompletionListener mOnCompletionListener;
     private MediaPlayer.OnPreparedListener mOnPreparedListener;
@@ -216,21 +208,37 @@ public class TextureVideoView extends TextureView
         setFocusable(true);
         setFocusableInTouchMode(true);
         requestFocus();
-        mPendingSubtitleTracks = new Vector<Pair<InputStream, MediaFormat>>();
         mCurrentState = STATE_IDLE;
         mTargetState  = STATE_IDLE;
     }
 
+    /**
+     * Sets video path.
+     *
+     * @param path the path of the video.
+     */
     public void setVideoPath(String path) {
         setVideoURI(Uri.parse(path));
     }
 
+    /**
+     * Sets video URI.
+     *
+     * @param uri the URI of the video.
+     */
     public void setVideoURI(Uri uri) {
         setVideoURI(uri, null);
     }
 
     /**
-     * @hide
+     * Sets video URI using specific headers.
+     *
+     * @param uri     the URI of the video.
+     * @param headers the headers for the URI request.
+     *                Note that the cross domain redirection is allowed by default, but that can be
+     *                changed with key/value pairs through the headers parameter with
+     *                "android-allow-cross-domain-redirect" as the key and "0" or "1" as the value
+     *                to disallow or allow cross domain redirection.
      */
     public void setVideoURI(Uri uri, Map<String, String> headers) {
         mUri = uri;
@@ -241,8 +249,6 @@ public class TextureVideoView extends TextureView
         invalidate();
     }
 
-    private Vector<Pair<InputStream, MediaFormat>> mPendingSubtitleTracks;
-
     public void stopPlayback() {
         if (mMediaPlayer != null) {
             mMediaPlayer.stop();
@@ -250,6 +256,8 @@ public class TextureVideoView extends TextureView
             mMediaPlayer = null;
             mCurrentState = STATE_IDLE;
             mTargetState  = STATE_IDLE;
+            AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            am.abandonAudioFocus(null);
         }
     }
 
@@ -258,15 +266,13 @@ public class TextureVideoView extends TextureView
             // not ready for playback just yet, will try again later
             return;
         }
-        // Tell the music playback service to pause
-        // TODO: these constants need to be published somewhere in the framework.
-        Intent i = new Intent("com.android.music.musicservicecommand");
-        i.putExtra("command", "pause");
-        getContext().sendBroadcast(i);
-
         // we shouldn't clear the target state, because somebody might have
         // called start() previously
         release(false);
+
+        AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+
         try {
             mMediaPlayer = new MediaPlayer();
 
@@ -304,8 +310,6 @@ public class TextureVideoView extends TextureView
             mTargetState = STATE_ERROR;
             mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, 0);
             return;
-        } finally {
-            mPendingSubtitleTracks.clear();
         }
     }
 
@@ -321,23 +325,23 @@ public class TextureVideoView extends TextureView
         if (mMediaPlayer != null && mMediaController != null) {
             mMediaController.setMediaPlayer(this);
             View anchorView = this.getParent() instanceof View ?
-                (View)this.getParent() : this;
+                    (View)this.getParent() : this;
             mMediaController.setAnchorView(anchorView);
             mMediaController.setEnabled(isInPlaybackState());
         }
     }
 
     MediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
-        new MediaPlayer.OnVideoSizeChangedListener() {
-            public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
-                mVideoWidth = mp.getVideoWidth();
-                mVideoHeight = mp.getVideoHeight();
-                if (mVideoWidth != 0 && mVideoHeight != 0) {
-                    getSurfaceTexture().setDefaultBufferSize(mVideoWidth, mVideoHeight);
-                    requestLayout();
+            new MediaPlayer.OnVideoSizeChangedListener() {
+                public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+                    mVideoWidth = mp.getVideoWidth();
+                    mVideoHeight = mp.getVideoHeight();
+                    if (mVideoWidth != 0 && mVideoHeight != 0) {
+                        getSurfaceTexture().setDefaultBufferSize(mVideoWidth, mVideoHeight);
+                        requestLayout();
+                    }
                 }
-            }
-        };
+            };
 
     MediaPlayer.OnPreparedListener mPreparedListener = new MediaPlayer.OnPreparedListener() {
         public void onPrepared(MediaPlayer mp) {
@@ -369,7 +373,7 @@ public class TextureVideoView extends TextureView
                         mMediaController.show();
                     }
                 } else if (!isPlaying() &&
-                    (seekToPosition != 0 || getCurrentPosition() > 0)) {
+                        (seekToPosition != 0 || getCurrentPosition() > 0)) {
                     if (mMediaController != null) {
                         // Show the media controls when we're paused into a video and make 'em stick.
                         mMediaController.show(0);
@@ -386,91 +390,87 @@ public class TextureVideoView extends TextureView
     };
 
     private MediaPlayer.OnCompletionListener mCompletionListener =
-        new MediaPlayer.OnCompletionListener() {
-            public void onCompletion(MediaPlayer mp) {
-            if (mCurrentState == STATE_PLAYBACK_COMPLETED) {
-                // sprylab bugfix: on some devices onCompletion is called twice
-                return;
-            }
-                mCurrentState = STATE_PLAYBACK_COMPLETED;
-                mTargetState = STATE_PLAYBACK_COMPLETED;
-                if (mMediaController != null) {
-                    mMediaController.hide();
-                }
-                if (mOnCompletionListener != null) {
-                    mOnCompletionListener.onCompletion(mMediaPlayer);
-                }
-            }
-        };
-
-    private MediaPlayer.OnInfoListener mInfoListener =
-        new MediaPlayer.OnInfoListener() {
-            public  boolean onInfo(MediaPlayer mp, int arg1, int arg2) {
-                if (mOnInfoListener != null) {
-                    mOnInfoListener.onInfo(mp, arg1, arg2);
-                }
-                return true;
-            }
-        };
-
-    private MediaPlayer.OnErrorListener mErrorListener =
-        new MediaPlayer.OnErrorListener() {
-            public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
-                Log.d(TAG, "Error: " + framework_err + "," + impl_err);
-                mCurrentState = STATE_ERROR;
-                mTargetState = STATE_ERROR;
-                if (mMediaController != null) {
-                    mMediaController.hide();
-                }
-
-            /* If an error handler has been supplied, use it and finish. */
-                if (mOnErrorListener != null) {
-                    if (mOnErrorListener.onError(mMediaPlayer, framework_err, impl_err)) {
-                        return true;
+            new MediaPlayer.OnCompletionListener() {
+                public void onCompletion(MediaPlayer mp) {
+                    mCurrentState = STATE_PLAYBACK_COMPLETED;
+                    mTargetState = STATE_PLAYBACK_COMPLETED;
+                    if (mMediaController != null) {
+                        mMediaController.hide();
+                    }
+                    if (mOnCompletionListener != null) {
+                        mOnCompletionListener.onCompletion(mMediaPlayer);
                     }
                 }
+            };
+
+    private MediaPlayer.OnInfoListener mInfoListener =
+            new MediaPlayer.OnInfoListener() {
+                public  boolean onInfo(MediaPlayer mp, int arg1, int arg2) {
+                    if (mOnInfoListener != null) {
+                        mOnInfoListener.onInfo(mp, arg1, arg2);
+                    }
+                    return true;
+                }
+            };
+
+    private MediaPlayer.OnErrorListener mErrorListener =
+            new MediaPlayer.OnErrorListener() {
+                public boolean onError(MediaPlayer mp, int framework_err, int impl_err) {
+                    Log.d(TAG, "Error: " + framework_err + "," + impl_err);
+                    mCurrentState = STATE_ERROR;
+                    mTargetState = STATE_ERROR;
+                    if (mMediaController != null) {
+                        mMediaController.hide();
+                    }
+
+            /* If an error handler has been supplied, use it and finish. */
+                    if (mOnErrorListener != null) {
+                        if (mOnErrorListener.onError(mMediaPlayer, framework_err, impl_err)) {
+                            return true;
+                        }
+                    }
 
             /* Otherwise, pop up an error dialog so the user knows that
              * something bad has happened. Only try and pop up the dialog
              * if we're attached to a window. When we're going away and no
              * longer have a window, don't bother showing the user an error.
              */
-                if (getWindowToken() != null) {
-                    Resources r = getContext().getResources();
-                    int messageId;
+                    if (getWindowToken() != null) {
+                        Resources r = getContext().getResources();
+                        int messageId;
 
-                    if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
-                        messageId = R.string.VideoView_error_text_invalid_progressive_playback;
-                    } else {
-                        messageId = R.string.VideoView_error_text_unknown;
-                    }
+                        if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
+                            messageId = android.R.string.VideoView_error_text_invalid_progressive_playback;
+                        } else {
+                            messageId = android.R.string.VideoView_error_text_unknown;
+                        }
 
-                    new AlertDialog.Builder(getContext())
-                        .setMessage(messageId)
-                        .setPositiveButton(R.string.VideoView_error_button,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
+                        new AlertDialog.Builder(getContext())
+                                .setMessage(messageId)
+                                .setPositiveButton(android.R.string.VideoView_error_button,
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int whichButton) {
                                         /* If we get here, there is no onError listener, so
                                          * at least inform them that the video is over.
                                          */
-                                    if (mOnCompletionListener != null) {
-                                        mOnCompletionListener.onCompletion(mMediaPlayer);
-                                    }
-                                }
-                            })
-                        .setCancelable(false)
-                        .show();
+                                                if (mOnCompletionListener != null) {
+                                                    mOnCompletionListener.onCompletion(mMediaPlayer);
+                                                }
+                                            }
+                                        })
+                                .setCancelable(false)
+                                .show();
+                    }
+                    return true;
                 }
-                return true;
-            }
-        };
+            };
 
     private MediaPlayer.OnBufferingUpdateListener mBufferingUpdateListener =
-        new MediaPlayer.OnBufferingUpdateListener() {
-            public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                mCurrentBufferPercentage = percent;
-            }
-        };
+            new MediaPlayer.OnBufferingUpdateListener() {
+                public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                    mCurrentBufferPercentage = percent;
+                }
+            };
 
     /**
      * Register a callback to be invoked when the media file
@@ -521,8 +521,6 @@ public class TextureVideoView extends TextureView
     {
         @Override
         public void onSurfaceTextureSizeChanged(final SurfaceTexture surface, final int width, final int height) {
-            mSurfaceWidth = width;
-            mSurfaceHeight = height;
             boolean isValidState =  (mTargetState == STATE_PLAYING);
             boolean hasValidSize = (width > 0 && height > 0);
             if (mMediaPlayer != null && isValidState && hasValidSize) {
@@ -564,11 +562,12 @@ public class TextureVideoView extends TextureView
             mMediaPlayer.reset();
             mMediaPlayer.release();
             mMediaPlayer = null;
-            mPendingSubtitleTracks.clear();
             mCurrentState = STATE_IDLE;
             if (cleartargetstate) {
                 mTargetState  = STATE_IDLE;
             }
+            AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            am.abandonAudioFocus(null);
         }
     }
 
@@ -592,15 +591,15 @@ public class TextureVideoView extends TextureView
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
         boolean isKeyCodeSupported = keyCode != KeyEvent.KEYCODE_BACK &&
-            keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
-            keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
-            keyCode != KeyEvent.KEYCODE_VOLUME_MUTE &&
-            keyCode != KeyEvent.KEYCODE_MENU &&
-            keyCode != KeyEvent.KEYCODE_CALL &&
-            keyCode != KeyEvent.KEYCODE_ENDCALL;
+                keyCode != KeyEvent.KEYCODE_VOLUME_UP &&
+                keyCode != KeyEvent.KEYCODE_VOLUME_DOWN &&
+                keyCode != KeyEvent.KEYCODE_VOLUME_MUTE &&
+                keyCode != KeyEvent.KEYCODE_MENU &&
+                keyCode != KeyEvent.KEYCODE_CALL &&
+                keyCode != KeyEvent.KEYCODE_ENDCALL;
         if (isInPlaybackState() && isKeyCodeSupported && mMediaController != null) {
             if (keyCode == KeyEvent.KEYCODE_HEADSETHOOK ||
-                keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
+                    keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) {
                 if (mMediaPlayer.isPlaying()) {
                     pause();
                     mMediaController.show();
@@ -616,7 +615,7 @@ public class TextureVideoView extends TextureView
                 }
                 return true;
             } else if (keyCode == KeyEvent.KEYCODE_MEDIA_STOP
-                || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
+                    || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) {
                 if (mMediaPlayer.isPlaying()) {
                     pause();
                     mMediaController.show();
@@ -708,9 +707,9 @@ public class TextureVideoView extends TextureView
 
     private boolean isInPlaybackState() {
         return (mMediaPlayer != null &&
-            mCurrentState != STATE_ERROR &&
-            mCurrentState != STATE_IDLE &&
-            mCurrentState != STATE_PREPARING);
+                mCurrentState != STATE_ERROR &&
+                mCurrentState != STATE_IDLE &&
+                mCurrentState != STATE_PREPARING);
     }
 
     @Override

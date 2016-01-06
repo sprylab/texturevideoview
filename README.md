@@ -1,7 +1,7 @@
 TextureVideoView for Android
 ============================
 
-A VideoView based on the official Android 4.4.2_r3 sources using a TextureView instead of a SurfaceView by sprylab technologies GmbH. It will work on Android 4.0+ (API level 15 and above).
+A VideoView based on the official Android 6.0.1_r10 sources using a TextureView instead of a SurfaceView by sprylab technologies GmbH. It will work on Android 4.0+ (API level 15 and above).
 
 For more information please see [this announcement][1].
 
@@ -25,7 +25,7 @@ compile 'com.sprylab.android.texturevideoview:texturevideoview:1.0.2'
 License
 =======
 
-    Copyright 2014-2015 sprylab technologies GmbH
+    Copyright 2014-2016 sprylab technologies GmbH
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
