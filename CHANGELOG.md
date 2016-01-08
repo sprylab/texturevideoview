@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 1.1.0 (not yet released)
---------------------------------
+Version 1.1.0
+-------------
 
  * synced TextureVideoView with latest sources from Android 6.0.1_r10
    (un-hides [setVideoURI(Uri uri, Map<String, String> headers)][1],
