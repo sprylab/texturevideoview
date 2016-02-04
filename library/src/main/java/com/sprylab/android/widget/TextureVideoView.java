@@ -256,7 +256,7 @@ public class TextureVideoView extends TextureView
             mMediaPlayer = null;
             mCurrentState = STATE_IDLE;
             mTargetState  = STATE_IDLE;
-            AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
             am.abandonAudioFocus(null);
         }
     }
@@ -270,7 +270,7 @@ public class TextureVideoView extends TextureView
         // called start() previously
         release(false);
 
-        AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+        AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
         try {
@@ -566,7 +566,7 @@ public class TextureVideoView extends TextureView
             if (cleartargetstate) {
                 mTargetState  = STATE_IDLE;
             }
-            AudioManager am = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
+            AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
             am.abandonAudioFocus(null);
         }
     }
