@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 1.1.1
+-------------
+
+ * fixed potential activity leak caused by AudioMananger on Android pre-6.0 devices (thanks to @hzsweers)
+
 Version 1.1.0
 -------------
 
