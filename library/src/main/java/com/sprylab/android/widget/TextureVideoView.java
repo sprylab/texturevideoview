@@ -576,7 +576,7 @@ public class TextureVideoView extends TextureView
         if (isInPlaybackState() && mMediaController != null) {
             toggleMediaControlsVisiblity();
         }
-        return false;
+        return super.onTouchEvent(ev);
     }
 
     @Override
