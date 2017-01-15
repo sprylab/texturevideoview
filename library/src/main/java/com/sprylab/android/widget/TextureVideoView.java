@@ -105,6 +105,7 @@ public class TextureVideoView extends TextureView
     private boolean     mCanPause;
     private boolean     mCanSeekBack;
     private boolean     mCanSeekForward;
+    private boolean     mCanRequestAudioFocus = true;
 
     public TextureVideoView(Context context) {
         super(context);
@@ -213,6 +214,28 @@ public class TextureVideoView extends TextureView
     }
 
     /**
+     * Set request audio focus flag. If true, {@link TextureVideoView} will request
+     * audio focus when opening a video by calling {@link AudioManager}. This flag
+     * should be set before calling {@link TextureVideoView#setVideoPath(String)} or
+     * {@link TextureVideoView#setVideoURI(Uri)}.
+     *
+     * @param canRequestAudioFocus  If true, {@link TextureVideoView} will request audio focus.
+     */
+    public void setCanRequestAudioFocus(boolean canRequestAudioFocus) {
+        mCanRequestAudioFocus = canRequestAudioFocus;
+    }
+
+    /**
+     * Returns request audio focus flag. If true, {@link TextureVideoView} will request
+     * audio focus.
+     *
+     * @return Request audio focus flag
+     */
+    public boolean canRequestAudioFocus() {
+        return mCanRequestAudioFocus;
+    }
+
+    /**
      * Sets video path.
      *
      * @param path the path of the video.
@@ -256,8 +279,10 @@ public class TextureVideoView extends TextureView
             mMediaPlayer = null;
             mCurrentState = STATE_IDLE;
             mTargetState  = STATE_IDLE;
-            AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            am.abandonAudioFocus(null);
+            if(canRequestAudioFocus()) {
+                AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                am.abandonAudioFocus(null);
+            }
         }
     }
 
@@ -270,8 +295,10 @@ public class TextureVideoView extends TextureView
         // called start() previously
         release(false);
 
-        AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if(canRequestAudioFocus()) {
+            AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        }
 
         try {
             mMediaPlayer = new MediaPlayer();
@@ -566,8 +593,10 @@ public class TextureVideoView extends TextureView
             if (cleartargetstate) {
                 mTargetState  = STATE_IDLE;
             }
-            AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            am.abandonAudioFocus(null);
+            if(canRequestAudioFocus()) {
+                AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                am.abandonAudioFocus(null);
+            }
         }
     }
 
