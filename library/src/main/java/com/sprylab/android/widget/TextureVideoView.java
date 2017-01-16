@@ -106,6 +106,7 @@ public class TextureVideoView extends TextureView
     private boolean mCanPause;
     private boolean mCanSeekBack;
     private boolean mCanSeekForward;
+    private boolean mShouldRequestAudioFocus = true;
 
     public TextureVideoView(Context context) {
         this(context, null);
@@ -255,8 +256,10 @@ public class TextureVideoView extends TextureView
             mMediaPlayer = null;
             mCurrentState = STATE_IDLE;
             mTargetState  = STATE_IDLE;
-            AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            am.abandonAudioFocus(null);
+            if (mShouldRequestAudioFocus) {
+                AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                am.abandonAudioFocus(null);
+            }
         }
     }
 
@@ -269,8 +272,10 @@ public class TextureVideoView extends TextureView
         // called start() previously
         release(false);
 
-        AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if (mShouldRequestAudioFocus) {
+            AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+            am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        }
 
         try {
             mMediaPlayer = new MediaPlayer();
@@ -565,8 +570,10 @@ public class TextureVideoView extends TextureView
             if (cleartargetstate) {
                 mTargetState  = STATE_IDLE;
             }
-            AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            am.abandonAudioFocus(null);
+            if (mShouldRequestAudioFocus) {
+                AudioManager am = (AudioManager) getContext().getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+                am.abandonAudioFocus(null);
+            }
         }
     }
 
@@ -733,6 +740,30 @@ public class TextureVideoView extends TextureView
             foo.release();
         }
         return mAudioSession;
+    }
+
+    /**
+     * Sets the request audio focus flag. If enabled, {@link TextureVideoView} will request
+     * audio focus when opening a video by calling {@link AudioManager}. This flag
+     * should be set before calling {@link TextureVideoView#setVideoPath(String)} or
+     * {@link TextureVideoView#setVideoURI(Uri)}. By default, {@link TextureVideoView} will
+     * request audio focus.
+     *
+     * @param shouldRequestAudioFocus  If {@code true}, {@link TextureVideoView} will request
+     * audio focus before opening a video, else audio focus is not requested
+     */
+    public void setShouldRequestAudioFocus(boolean shouldRequestAudioFocus) {
+        mShouldRequestAudioFocus = shouldRequestAudioFocus;
+    }
+
+    /**
+     * Returns the current state of the audio focus request flag.
+     *
+     * @return {@code true}, if {@link TextureVideoView} will request
+     * audio focus before opening a video, else {@code false}
+     */
+    public boolean shouldRequestAudioFocus() {
+        return mShouldRequestAudioFocus;
     }
 
 }
