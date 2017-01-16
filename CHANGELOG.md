@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+Version 1.2.0
+-------------
+
+ * synced TextureVideoView with latest sources from Android 7.1.1_r13
+   (constructor improvements, code formatting)
+ * API addition: Call `setShouldRequestAudioFocus(true)` to programmatically disable audio focus request before opening a video file -
+   default behaviour is unchanged and complies with the current `VideoView` implementation
+   (see #14, thanks to @ezaquarii)
+
 Version 1.1.1
 -------------
 

@@ -1,7 +1,7 @@
 TextureVideoView for Android
 ============================
 
-A VideoView based on the official Android 6.0.1_r10 sources using a TextureView instead of a SurfaceView by sprylab technologies GmbH. It will work on Android 4.0+ (API level 15 and above).
+A VideoView based on the official Android 7.1.1_r13 sources using a TextureView instead of a SurfaceView by sprylab technologies GmbH. It will work on Android 4.0+ (API level 15 and above).
 
 For more information please see [this announcement][1].
 
@@ -13,12 +13,12 @@ Download [the latest JAR][2] or grab via Maven:
 <dependency>
   <groupId>com.sprylab.android.texturevideoview</groupId>
   <artifactId>texturevideoview</artifactId>
-  <version>1.1.1</version>
+  <version>1.2.0</version>
 </dependency>
 ```
 or Gradle:
 ```groovy
-compile 'com.sprylab.android.texturevideoview:texturevideoview:1.1.1'
+compile 'com.sprylab.android.texturevideoview:texturevideoview:1.2.0'
 ```
 
 
