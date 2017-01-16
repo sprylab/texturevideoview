@@ -58,7 +58,7 @@ import java.util.Map;
  * Also note that the audio session id (from {@link #getAudioSessionId}) may
  * change from its previously returned value when the VideoView is restored.<p>
  *
- * This code is based on the official Android sources for 6.0.1_r10 with the following differences:
+ * This code is based on the official Android sources for 7.1.1_r13 with the following differences:
  * <ol>
  *     <li>extends {@link android.view.TextureView} instead of a {@link android.view.SurfaceView}
  *     allowing proper view animations</li>
@@ -67,19 +67,20 @@ import java.util.Map;
  */
 public class TextureVideoView extends TextureView
     implements MediaPlayerControl {
-    private String TAG = "TextureVideoView";
-    // settable by the client
-    private Uri         mUri;
-    private Map<String, String> mHeaders;
+    private static final String TAG = "TextureVideoView";
 
     // all possible internal states
-    private static final int STATE_ERROR              = -1;
-    private static final int STATE_IDLE               = 0;
-    private static final int STATE_PREPARING          = 1;
-    private static final int STATE_PREPARED           = 2;
-    private static final int STATE_PLAYING            = 3;
-    private static final int STATE_PAUSED             = 4;
+    private static final int STATE_ERROR = -1;
+    private static final int STATE_IDLE = 0;
+    private static final int STATE_PREPARING = 1;
+    private static final int STATE_PREPARED = 2;
+    private static final int STATE_PLAYING = 3;
+    private static final int STATE_PAUSED = 4;
     private static final int STATE_PLAYBACK_COMPLETED = 5;
+
+    // settable by the client
+    private Uri mUri;
+    private Map<String, String> mHeaders;
 
     // mCurrentState is a TextureVideoView object's current state.
     // mTargetState is the state that a method caller intends to reach.
@@ -87,38 +88,47 @@ public class TextureVideoView extends TextureView
     // calling pause() intends to bring the object to a target state
     // of STATE_PAUSED.
     private int mCurrentState = STATE_IDLE;
-    private int mTargetState  = STATE_IDLE;
+    private int mTargetState = STATE_IDLE;
 
     // All the stuff we need for playing and showing a video
-    private Surface     mSurface = null;
+    private Surface mSurface = null;
     private MediaPlayer mMediaPlayer = null;
-    private int         mAudioSession;
-    private int         mVideoWidth;
-    private int         mVideoHeight;
+    private int mAudioSession;
+    private int mVideoWidth;
+    private int mVideoHeight;
     private MediaController mMediaController;
     private OnCompletionListener mOnCompletionListener;
     private MediaPlayer.OnPreparedListener mOnPreparedListener;
-    private int         mCurrentBufferPercentage;
+    private int mCurrentBufferPercentage;
     private OnErrorListener mOnErrorListener;
-    private OnInfoListener  mOnInfoListener;
-    private int         mSeekWhenPrepared;  // recording the seek position while preparing
-    private boolean     mCanPause;
-    private boolean     mCanSeekBack;
-    private boolean     mCanSeekForward;
+    private OnInfoListener mOnInfoListener;
+    private int mSeekWhenPrepared;  // recording the seek position while preparing
+    private boolean mCanPause;
+    private boolean mCanSeekBack;
+    private boolean mCanSeekForward;
 
     public TextureVideoView(Context context) {
-        super(context);
-        initVideoView();
+        this(context, null);
     }
 
     public TextureVideoView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
-        initVideoView();
     }
 
     public TextureVideoView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        initVideoView();
+
+        mVideoWidth = 0;
+        mVideoHeight = 0;
+
+        setSurfaceTextureListener(mSurfaceTextureListener);
+
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+        requestFocus();
+
+        mCurrentState = STATE_IDLE;
+        mTargetState = STATE_IDLE;
     }
 
     @Override
@@ -199,17 +209,6 @@ public class TextureVideoView extends TextureView
 
     public int resolveAdjustedSize(int desiredSize, int measureSpec) {
         return getDefaultSize(desiredSize, measureSpec);
-    }
-
-    private void initVideoView() {
-        mVideoWidth = 0;
-        mVideoHeight = 0;
-        setSurfaceTextureListener(mSurfaceTextureListener);
-        setFocusable(true);
-        setFocusableInTouchMode(true);
-        requestFocus();
-        mCurrentState = STATE_IDLE;
-        mTargetState  = STATE_IDLE;
     }
 
     /**
