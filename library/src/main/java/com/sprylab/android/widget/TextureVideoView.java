@@ -261,6 +261,28 @@ public class TextureVideoView extends TextureView
                 am.abandonAudioFocus(null);
             }
         }
+
+        if (mSurface != null) {
+            clearSurface(mSurface);
+        }
+    }
+
+    private void clearSurface(Surface surface) {
+        // We need to do this with OpenGL ES (*not* Canvas -- the "software render" bits
+        // are sticky).  We can't stay connected to the Surface after we're done because
+        // that'd prevent the video encoder from attaching.
+        //
+        // If the Surface is resized to be larger, the new portions will be black, so
+        // clearing to something other than black may look weird unless we do the clear
+        // post-resize.
+        EglCore eglCore = new EglCore();
+        WindowSurface win = new WindowSurface(eglCore, surface, false);
+        win.makeCurrent();
+        GLES20.glClearColor(0, 0, 0, 0);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        win.swapBuffers();
+        win.release();
+        eglCore.release();
     }
 
     private void openVideo() {
