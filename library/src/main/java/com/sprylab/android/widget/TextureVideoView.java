@@ -27,6 +27,7 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnInfoListener;
 import android.net.Uri;
+import android.opengl.GLES20;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -41,6 +42,12 @@ import android.widget.MediaController.MediaPlayerControl;
 
 import java.io.IOException;
 import java.util.Map;
+
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.egl.EGLDisplay;
+import javax.microedition.khronos.egl.EGLSurface;
 
 /**
  * Displays a video file.  The TextureVideoView class
@@ -261,6 +268,56 @@ public class TextureVideoView extends TextureView
                 am.abandonAudioFocus(null);
             }
         }
+
+        if (mSurface != null) {
+            clearSurface(mSurface);
+        }
+    }
+
+    /**
+     * Clear the given surface Texture by attachign a GL context and clearing the surface.
+     * @param texture a valid Surface
+     */
+    private void clearSurface(Surface texture) {
+        if (texture == null){
+            return;
+        }
+
+        EGL10 egl = (EGL10) EGLContext.getEGL();
+        EGLDisplay display = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
+        egl.eglInitialize(display, null);
+
+        int[] attribList = {
+                EGL10.EGL_RED_SIZE, 8,
+                EGL10.EGL_GREEN_SIZE, 8,
+                EGL10.EGL_BLUE_SIZE, 8,
+                EGL10.EGL_ALPHA_SIZE, 8,
+                EGL10.EGL_RENDERABLE_TYPE, EGL10.EGL_WINDOW_BIT,
+                EGL10.EGL_NONE, 0,      // placeholder for recordable [@-3]
+                EGL10.EGL_NONE
+        };
+        EGLConfig[] configs = new EGLConfig[1];
+        int[] numConfigs = new int[1];
+        egl.eglChooseConfig(display, attribList, configs, configs.length, numConfigs);
+        EGLConfig config = configs[0];
+        EGLContext context = egl.eglCreateContext(display, config, EGL10.EGL_NO_CONTEXT, new int[]{
+                12440, 2,
+                EGL10.EGL_NONE
+        });
+        EGLSurface eglSurface = egl.eglCreateWindowSurface(display, config, texture,
+                new int[]{
+                        EGL10.EGL_NONE
+                });
+
+        egl.eglMakeCurrent(display, eglSurface, eglSurface, context);
+        GLES20.glClearColor(0, 0, 0, 1);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        egl.eglSwapBuffers(display, eglSurface);
+        egl.eglDestroySurface(display, eglSurface);
+        egl.eglMakeCurrent(display, EGL10.EGL_NO_SURFACE, EGL10.EGL_NO_SURFACE,
+                EGL10.EGL_NO_CONTEXT);
+        egl.eglDestroyContext(display, context);
+        egl.eglTerminate(display);
     }
 
     private void openVideo() {
