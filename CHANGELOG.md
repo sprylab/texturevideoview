@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 1.2.1
+-------------
+
+ * clear the underlying `Surface` on API level 16+ when calling `stopPlayback()` (see #15, thanks to @hithere1985)
+
 Version 1.2.0
 -------------
 

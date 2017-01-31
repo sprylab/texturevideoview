@@ -8,8 +8,9 @@ The main advantages of this drop-in replacement compared to the original `VideoV
 * extends `android.view.TextureView` instead of a `android.view.SurfaceView` thus allowing proper view animations as described in the [Property Animation API guide][2]
 * API addition: Call `setShouldRequestAudioFocus(true)` to programmatically disable audio focus request before opening a video file -
   default behaviour is unchanged and complies with the current `VideoView` implementation (thanks to @ezaquarii)
-* fixed a sizing bug when auto-starting the video with view size != video size (thanks to @lhunath)
-* fixed various memory leaks
+* clears the underlying `Surface` on API level 16+ when calling `stopPlayback()` (thanks to @hithere1985)
+* fixes a sizing bug when auto-starting the video with view size != video size (thanks to @lhunath)
+* fixes various memory leaks
   * potential leak by releasing surface when destroyed
   * potential activity leak when streaming videos over HTTP(S) (thanks to @koral)
   * potential activity leak caused by AudioMananger on Android pre-6.0 devices (thanks to @hzsweers)
