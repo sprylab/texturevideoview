@@ -25,12 +25,12 @@ Download [the latest JAR][3] or grab via Maven:
 <dependency>
   <groupId>com.sprylab.android.texturevideoview</groupId>
   <artifactId>texturevideoview</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
 </dependency>
 ```
 or Gradle:
 ```groovy
-compile 'com.sprylab.android.texturevideoview:texturevideoview:1.2.0'
+compile 'com.sprylab.android.texturevideoview:texturevideoview:1.2.1'
 ```
 
 License
