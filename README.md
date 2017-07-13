@@ -13,7 +13,7 @@ The main advantages of this drop-in replacement compared to the original `VideoV
 * fixes various memory leaks
   * potential leak by releasing surface when destroyed
   * potential activity leak when streaming videos over HTTP(S) (thanks to @koral)
-  * potential activity leak caused by AudioMananger on Android pre-6.0 devices (thanks to @hzsweers)
+  * potential activity leak caused by AudioManager on Android pre-6.0 devices (thanks to @hzsweers)
 
 Unfortunately, code that uses hidden APIs and thus is not publicly available had to be removed (e.g. subtitle support).
 
