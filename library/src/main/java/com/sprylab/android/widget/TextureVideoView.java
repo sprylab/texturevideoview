@@ -26,6 +26,7 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnInfoListener;
+import android.media.MediaPlayer.OnSeekCompleteListener;
 import android.net.Uri;
 import android.opengl.GLES20;
 import android.os.Build;
@@ -106,6 +107,7 @@ public class TextureVideoView extends TextureView
     private int mVideoWidth;
     private int mVideoHeight;
     private MediaController mMediaController;
+    private OnSeekCompleteListener mOnSeekCompleteListener;
     private OnCompletionListener mOnCompletionListener;
     private MediaPlayer.OnPreparedListener mOnPreparedListener;
     private int mCurrentBufferPercentage;
@@ -340,6 +342,7 @@ public class TextureVideoView extends TextureView
             }
             mMediaPlayer.setOnPreparedListener(mPreparedListener);
             mMediaPlayer.setOnVideoSizeChangedListener(mSizeChangedListener);
+            mMediaPlayer.setOnSeekCompleteListener(mOnSeekCompleteListener);
             mMediaPlayer.setOnCompletionListener(mCompletionListener);
             mMediaPlayer.setOnErrorListener(mErrorListener);
             mMediaPlayer.setOnInfoListener(mInfoListener);
@@ -446,6 +449,15 @@ public class TextureVideoView extends TextureView
         }
     };
 
+    private MediaPlayer.OnSeekCompleteListener mSeekCompleteListener =
+            new MediaPlayer.OnSeekCompleteListener() {
+                public void onSeekComplete(MediaPlayer mp) {
+                    if (mOnSeekCompleteListener != null) {
+                        mOnSeekCompleteListener.onSeekComplete(mMediaPlayer);
+                    }
+                }
+            };
+
     private MediaPlayer.OnCompletionListener mCompletionListener =
             new MediaPlayer.OnCompletionListener() {
                 public void onCompletion(MediaPlayer mp) {
@@ -538,6 +550,16 @@ public class TextureVideoView extends TextureView
     public void setOnPreparedListener(MediaPlayer.OnPreparedListener l)
     {
         mOnPreparedListener = l;
+    }
+
+    /**
+     * Register a callback to be invoked indicating the completion of a seek operation.
+     *
+     * @param l The callback that will be run
+     */
+    public void setOnSeekCompleteListener(MediaPlayer.OnSeekCompleteListener l)
+    {
+        mOnSeekCompleteListener = l;
     }
 
     /**
